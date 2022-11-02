@@ -64,3 +64,31 @@ dat.tidy.wide %>%
     snitt = weighted.mean(snittkarakter, antall_elever, na.rm = T),
     .groups = 'drop'
   )
+
+# ... per skole
+
+dat.tidy.wide %>%
+  filter(enhet_nivaa == 3) %>%
+  group_by(organisasjonsnummer, enhet_navn, period) %>%
+  summarise(
+    snittkarakter = weighted.mean(snittkarakter, antall_elever, na.rm = T),
+    antall_elever = sum(antall_elever, na.rm = T),
+    .groups = "drop_last"
+  ) %>%
+  arrange(period) %>%
+  mutate(
+    abs_change = snittkarakter - lag(snittkarakter),
+    rel_change = snittkarakter / lag(snittkarakter)
+  ) %>%
+  ungroup() %>%
+  filter(period %in% c('2018_19', '2019_20')) %>%
+  pivot_wider(c(organisasjonsnummer, enhet_navn), names_from=period, values_from=c(abs_change, rel_change, antall_elever, snittkarakter)) %>%
+  filter(!is.na(rel_change_2019_20)) %>%
+  arrange(desc(rel_change_2019_20)) %>%
+  transmute(
+    Skole = enhet_navn,
+    `2018/19` = round(snittkarakter_2018_19, 2),
+    `2019/20` = round(snittkarakter_2019_20, 2),
+    'Endring (%)' = round((rel_change_2019_20 - 1) * 100, 1),
+    'Endring' = round(abs_change_2019_20, 2)
+  )
