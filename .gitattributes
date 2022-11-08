@@ -1,0 +1,2 @@
+data filter=lfs diff=lfs merge=lfs -text
+data/2022-09-16-karakterer-utvalgte-fag.csv filter=lfs diff=lfs merge=lfs -text
